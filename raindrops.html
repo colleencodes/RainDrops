@@ -1,0 +1,110 @@
+<!--http://bl.ocks.org/jimkang/620e066481967945c65f-->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<style type="text/css">
+    .border-box{
+        fill: hsla(0, 100%, 100%, 0);
+        stroke: black;
+    }
+</style>
+<body>
+    <script>
+        var width = 400;
+        var height = 700;
+        var radius = 8;
+
+        var force = d3.layout.force()
+            .friction(0.2)
+            .size([width, height]);
+
+        var svg = d3.select('body').append('svg:svg')
+            .attr('width', width)
+            .attr('height', height);
+
+        var borderbox = svg.append('rect').classed('border-box', true)
+            .attr({
+                width: width, 
+                height: height
+            });
+
+        var nodes = [];
+        var linkData = [];
+        var raindrops = [];
+        var raindrop = [];
+        
+        var continueRain = setInterval(keepRaining, 250);
+
+        function keepRaining(){
+            var newNodes = d3.range(1).map(function(){
+                return {
+                    x: Math.round(Math.random() * (width - radius * 2) + radius),
+                    y: 0
+                };
+            });
+
+            var newRaindrops = newNodes.map(createRaindrops); //magnetnodes
+            var newLinkData = newRaindrops.map(function makeLink(raindrop, i){
+                return {
+                    source: raindrop,
+                    target: newNodes[i], 
+                    value: 1
+                };
+            });
+
+     
+            console.log(nodes);
+            newNodes.forEach(function setRadius(node) { node.radius = radius; });
+            nodes = nodes.concat(newNodes)
+            raindrop = svg.selectAll('circle')
+                .data(nodes)
+                .enter().append('svg:circle')
+                    .attr('r', radius - .75)
+                    .style('fill', "blue")
+                    .style('stroke', 'black')
+
+            linkData = linkData.concat(newLinkData)
+            // nodes = nodes.concat(newNodes);
+
+            // nodes = nodes.concat(newRaindrops)
+
+            force
+                .nodes(nodes)
+                .links(linkData)
+                .on('tick', tick)
+                .start();
+
+            function createRaindrops(node){ //magnetNodeForNode
+                return{
+                    // group: 100,
+                    fixed: true,
+                    x: node.x,
+                    y: height + radius + 20
+                };
+            }
+
+            function tick(){
+                raindrop.attr('cx', updateCx)
+                        .attr('cy', updateCy)
+
+                // raindrop.attr('cy', updateCy)
+            }
+
+            function updateCx(d){
+                if (!d.fixed){
+                    d.x = Math.max(radius, Math.min(width - radius, d.x));                
+                }
+                return d.x;
+            }
+
+            function updateCy(d){
+                if (!d.fixed){
+                    d.y = Math.max(radius, Math.min(height - radius, d.y));    
+                }
+                return d.y;
+            }
+        }
+
+    </script>
+</body>
+
