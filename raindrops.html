@@ -13,7 +13,7 @@
     <script>
         var width = 400;
         var height = 350;
-        var radius = 8;
+        var radius = 10;
 
         var force = d3.layout.force()
             .friction(0.2)
@@ -37,7 +37,7 @@
         var continueRain = setInterval(keepRaining, 250);
 
         function keepRaining(){
-            var newNodes = d3.range(1).map(function(){
+            var newNodes = d3.range(1).map(function(){ //same as nodes
                 return {
                     x: Math.round(Math.random() * (width - radius * 2) + radius),
                     y: 0
@@ -45,17 +45,18 @@
             });
 
             var newRaindrops = newNodes.map(createRaindrops); //magnetnodes
+            // console.log(newRaindrops);
+            // console.log('LOOK ABOVWE');
             var newLinkData = newRaindrops.map(function makeLink(raindrop, i){
                 return {
                     source: raindrop,
-                    target: newNodes[i], 
-                    value: 1
+                    target: newNodes[i]
                 };
             });
 
-
-            newNodes.forEach(function setRadius(node) { node.radius = radius; });
-            nodes = nodes.concat(newNodes)
+            nodes = nodes.concat(newRaindrops);
+            nodes.forEach(function setRadius(node) { node.radius = radius; });
+            // nodes = nodes.concat(newNodes)
 
             var grads = svg.append("defs").selectAll("radialGradient")
                 .data(nodes)
@@ -83,6 +84,8 @@
 
             linkData = linkData.concat(newLinkData)
 
+            // console.log(nodes);
+            // console.log(' ');
             force
                 .nodes(nodes)
                 .links(linkData)
@@ -91,11 +94,9 @@
 
             function createRaindrops(node){ //magnetNodeForNode
                 return{
-                    // group: 100,
                     fixed: true,
                     x: node.x,
-                    y: height + radius + 20
-                    // y: 350
+                    y: height - 20
                 };
             }
 
@@ -112,13 +113,13 @@
             }
 
             function updateCy(d){
+                // console.log(d.y);
+                // console.log(d.fixed);
                 if (!d.fixed){
-                    d.y = Math.max(radius, Math.min(height - radius, d.y));  
-                    // d.y = 300;  
+                    d.y = Math.max(radius, Math.min(height - radius, d.y));   
                 }
-                if (d.y == 0){
-                    d.fixed = true;
-                }
+                // console.log(d.y);
+                // console.log(' ');
                 return d.y;
             }
         }
