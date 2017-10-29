@@ -1,4 +1,5 @@
 <!--http://bl.ocks.org/jimkang/620e066481967945c65f-->
+<!--https://stackoverflow.com/questions/20837147/draw-a-d3-circle-with-gradient-colours-->
 <!DOCTYPE html>
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -11,7 +12,7 @@
 <body>
     <script>
         var width = 400;
-        var height = 700;
+        var height = 350;
         var radius = 8;
 
         var force = d3.layout.force()
@@ -52,21 +53,35 @@
                 };
             });
 
-     
-            console.log(nodes);
+
             newNodes.forEach(function setRadius(node) { node.radius = radius; });
             nodes = nodes.concat(newNodes)
+
+            var grads = svg.append("defs").selectAll("radialGradient")
+                .data(nodes)
+                .enter()
+                    .append("radialGradient")
+                    .attr("gradientUnits", "objectBoundingBox")
+                    .attr("cx", 0)
+                    .attr("cy", 0)
+                    .attr("r", "100%")
+                    .attr("id", function(d, i) {return "grad" + i});
+
+            grads.append("stop")
+                .attr("offset", "0%")
+                .style("stop-color", "white");
+
+            grads.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#2a9cab");
+
             raindrop = svg.selectAll('circle')
                 .data(nodes)
                 .enter().append('svg:circle')
                     .attr('r', radius - .75)
-                    .style('fill', "blue")
-                    .style('stroke', 'black')
+                    .style('fill', function(d, i){return "url(#grad" + i + ")";})
 
             linkData = linkData.concat(newLinkData)
-            // nodes = nodes.concat(newNodes);
-
-            // nodes = nodes.concat(newRaindrops)
 
             force
                 .nodes(nodes)
@@ -80,14 +95,13 @@
                     fixed: true,
                     x: node.x,
                     y: height + radius + 20
+                    // y: 350
                 };
             }
 
             function tick(){
                 raindrop.attr('cx', updateCx)
                         .attr('cy', updateCy)
-
-                // raindrop.attr('cy', updateCy)
             }
 
             function updateCx(d){
@@ -99,7 +113,11 @@
 
             function updateCy(d){
                 if (!d.fixed){
-                    d.y = Math.max(radius, Math.min(height - radius, d.y));    
+                    d.y = Math.max(radius, Math.min(height - radius, d.y));  
+                    // d.y = 300;  
+                }
+                if (d.y == 0){
+                    d.fixed = true;
                 }
                 return d.y;
             }
